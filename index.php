@@ -11,6 +11,8 @@ if (0 === count($seeds)) {
 	die('Exiting.');
 }
 
+//TODO: Load MD5 checksums calculated during last run.
+
 $ch = curl_init();
 $htmlDom = new DOMDocument;
 libxml_use_internal_errors(true);
@@ -29,6 +31,10 @@ foreach ($seeds as $seed) {
 
 	foreach ($body as $b) {
 		echo $b->nodeValue, PHP_EOL;
+		
+		//TODO: calculate MD5 of the contents, and compare it with last MD5 (if exists)
+		//TODO: if checksums differ, calculate the difference and output it.
+		//TODO: update MD5 checksum
 	}
 }
 
