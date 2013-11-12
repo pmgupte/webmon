@@ -1,9 +1,27 @@
 <?php
+/*
+ * Primary Checks
+ */
 if (!function_exists('curl_init')) {
 	die('Need PHP cURL installed and enabled.');
 }
 
-$seeds = file('./seeds', FILE_SKIP_EMPTY_LINES);
+/*
+ * Constants required for this script
+ */
+define('FILE_SEEDS', './seeds');
+define('FILE_DATA_JSON', './data.json');
+define('STATUS_NEW', 'New');
+define('STATUS_NO_CHANGE', 'No Change');
+define('STATUS_CHANGED', 'Changed');
+
+/*
+ * Touch required files
+ */
+touch(FILE_SEEDS);
+touch(FILE_DATA_JSON);
+
+$seeds = file(FILE_SEEDS, FILE_SKIP_EMPTY_LINES && FILE_IGNORE_NEW_LINES);
 $seedsCount = count($seeds);
 echo "\n$seedsCount URLs found in seeds file.";
 
@@ -11,7 +29,8 @@ if (0 === count($seeds)) {
 	die('Exiting.');
 }
 
-//TODO: Load MD5 checksums calculated during last run.
+// Load data from last run
+$data = json_decode(file_get_contents(FILE_DATA_JSON), true);
 
 $ch = curl_init();
 $htmlDom = new DOMDocument;
@@ -26,18 +45,44 @@ foreach ($seeds as $seed) {
 	$httpResponse = curl_exec($ch);
 
 	$htmlDom->loadHTML($httpResponse);
-	$body = $htmlDom->getElementsByTagName('body');
-	var_dump($body);
+	$bodyTags = $htmlDom->getElementsByTagName('body');
 
-	foreach ($body as $b) {
-		echo $b->nodeValue, PHP_EOL;
-		
-		//TODO: calculate MD5 of the contents, and compare it with last MD5 (if exists)
-		//TODO: if checksums differ, calculate the difference and output it.
-		//TODO: update MD5 checksum
-	}
-}
+	foreach ($bodyTags as $bodyTag) {
+		$body = $bodyTag->nodeValue;
+		$newChecksum = md5($body);
+
+		if (isset($data[$seed])) {
+			// we have processed this seed at least once before
+			if ($newChecksum !== $data[$seed]['checksum']) {
+				echo "...", STATUS_CHANGED;
+				// web page changed. update stored data
+				$data[$seed]['status'] = STATUS_CHANGED;
+				$data[$seed]['checksum'] = $newChecksum;
+				$data[$seed]['contents'] = base64_encode($body);
+			} else {
+				// no change. just update status
+				echo "...", STATUS_NO_CHANGE;
+				$data[$seed]['status'] = STATUS_NO_CHANGE;
+			}
+
+			$data[$seed]['lastChecked'] = microtime();
+		} else {
+			// this is first processing of this seed
+			echo "...", STATUS_NEW;
+			$data[$seed] = array(
+				'status' => STATUS_NEW,
+				'checksum' => $newChecksum,
+				'contents' => base64_encode($body),
+				'lastChecked' => microtime()
+			);
+		} // if-else on isset data[seed]
+	} // foreach on bodyTags
+} // foreach on seeds
+
+// save updated data
+file_put_contents(FILE_DATA_JSON, json_encode($data));
 
 libxml_clear_errors();
 curl_close($ch);
+echo "\n*** Done ***\n";
 ?>
