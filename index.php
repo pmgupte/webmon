@@ -89,7 +89,7 @@ echo "\n*** Done ***\n";
 /******************************************************************************
  * Helper Functions
  *****************************************************************************/
-function log($level=DEBUG, $message) {
+function debug($level=DEBUG, $message) {
 	$timestamp = date('Y-m-d H:i:s');
 
 	if (is_string($message)) {
