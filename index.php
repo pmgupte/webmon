@@ -99,16 +99,17 @@ function debug($message, $level=DEBUG_LEVEL_INFO) {
 	$timestamp = date('Y-m-d H:i:s');
 
 	if (is_string($message)) {
-		file_put_contents(FILE_DEBUG_LOG, "[$timestamp] $level: $message", FILE_APPEND);
+		file_put_contents(FILE_DEBUG_LOG, "[$timestamp] $level: $message\n", FILE_APPEND);
 		if (VERBOSE) {
-			echo "\n", "[$timestamp] $level: $message";
+			echo "[$timestamp] $level: $message\n";
 		}
 	} else {
 		file_put_contents(FILE_DEBUG_LOG, "[$timestamp] $level: ", FILE_APPEND);
 		file_put_contents(FILE_DEBUG_LOG, $message, FILE_APPEND);
+		file_put_contents(FILE_DEBUG_lOG, "\n", FILE_APPEND);
 		if (VERBOSE) {
-			echo "\n", "[$timestamp] $level: ";
-			echo var_export($message, true);
+			echo "[$timestamp] $level: ";
+			echo var_export($message, true), "\n";
 		}
 	}
 } // debug
