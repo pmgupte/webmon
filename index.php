@@ -26,6 +26,7 @@ define('VERBOSE', true);
  */
 touch(FILE_SEEDS);
 touch(FILE_DATA_JSON);
+touch(FILE_DEBUG_LOG);
 
 $seeds = file(FILE_SEEDS, FILE_SKIP_EMPTY_LINES && FILE_IGNORE_NEW_LINES);
 $seedsCount = count($seeds);
