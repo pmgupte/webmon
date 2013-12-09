@@ -85,4 +85,18 @@ file_put_contents(FILE_DATA_JSON, json_encode($data));
 libxml_clear_errors();
 curl_close($ch);
 echo "\n*** Done ***\n";
+
+/******************************************************************************
+ * Helper Functions
+ *****************************************************************************/
+function log($level=DEBUG, $message) {
+	$timestamp = date('Y-m-d H:i:s');
+
+	if (is_string($message)) {
+		file_put_contents(LOGFILE, "[$timestamp] $level: $message", FILE_APPEND);
+	} else {
+		file_put_contents(LOGFILE, "[$timestamp] $level: ", FILE_APPEND);
+		file_put_contents(LOGFILE, $message, FILE_APPEND);
+	}
+} // log
 ?>
