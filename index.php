@@ -31,6 +31,7 @@ $htmlDom = new DOMDocument;
 libxml_use_internal_errors(true);
 
 foreach ($seeds as $seed) {
+	$seed = trim($seed);
 	debug("* Fetching: $seed");
 	curl_setopt($ch, CURLOPT_URL, $seed);
 	curl_setopt($ch, CURLOPT_REFERER, 'Webmon Script');
