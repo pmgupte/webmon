@@ -51,9 +51,19 @@ foreach ($seeds as $seed) {
 			if ($newChecksum !== $data[$seed]['checksum']) {
 				debug("...", STATUS_CHANGED);
 				// web page changed. update stored data
+				file_put_contents($seed . FILE_A_SUFFIX, $data[$seed]['content']);
+				file_put_contents($seed . FILE_B_SUFFIX, $body);
+
+				$contentsA = file($seed . FILE_A_SUFFIX);
+				$contentsB = file($seed . FILE_B_SUFFIX);
+
+				$negativeDiff = array_diff($contentsA, $contentsB);
+				$positiveDiff = array_diff($contentsB, $contentsA);
+
 				$data[$seed]['status'] = STATUS_CHANGED;
 				$data[$seed]['checksum'] = $newChecksum;
 				$data[$seed]['contents'] = base64_encode($body);
+
 			} else {
 				// no change. just update status
 				debug("...", STATUS_NO_CHANGE);
