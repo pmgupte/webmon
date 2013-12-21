@@ -50,16 +50,49 @@ foreach ($seeds as $seed) {
 			// we have processed this seed at least once before
 			if ($newChecksum !== $data[$seed]['checksum']) {
 				debug("...", STATUS_CHANGED);
-				// web page changed. update stored data
-				file_put_contents($seed . FILE_A_SUFFIX, $data[$seed]['content']);
-				file_put_contents($seed . FILE_B_SUFFIX, $body);
+				// web page changed. find the diff
+				$filename = '/tmp/' . str_replace(array(':', '/'), '_', $seed);
+				file_put_contents($filename . FILE_A_SUFFIX, $data[$seed]['content']);
+				file_put_contents($filename . FILE_B_SUFFIX, $body);
 
-				$contentsA = file($seed . FILE_A_SUFFIX);
-				$contentsB = file($seed . FILE_B_SUFFIX);
+				$contentsA = file($filename . FILE_A_SUFFIX);
+				$contentsB = file($filename . FILE_B_SUFFIX);
 
 				$negativeDiff = array_diff($contentsA, $contentsB);
 				$positiveDiff = array_diff($contentsB, $contentsA);
 
+				$countA = count($contentsA);
+				$countB = count($contentsB);
+				$counter = ($countA > $countB) ? $countA : $countB;
+
+				echo "+++ positive diff\n--- negative diff\n";
+				if ($counter === $countA) {
+					for ($i=0; $i<$counter; $i++) {
+						if (in_array($contentsA[$i], $negativeDiff)) {
+							$prefixA = '- ';
+							$prefixB = '+ ';
+						} else if (in_array($contentsA[$i], $positiveDiff)) {
+							$prefixA = '+ ';
+							$prefixB = '- ';
+						}
+						echo $prefixA . $contentsA[$i];
+						echo $prefixB . $contentsA[$i];
+					}
+				} else {
+					for ($i=0; $i<$counter; $i++) {
+						if (in_array($contentsB[$i], $negativeDiff)) {
+							$prefixA = '- ';
+							$prefixB = '+ ';
+						} else if (in_array($contentsB[$i], $positiveDiff)) {
+							$prefixA = '+ ';
+							$prefixB = '- ';
+						}
+						echo $prefixA . $contentsB[$i];
+						echo $prefixB . $contentsB[$i];
+					}
+				}
+
+				// update the status in data file
 				$data[$seed]['status'] = STATUS_CHANGED;
 				$data[$seed]['checksum'] = $newChecksum;
 				$data[$seed]['contents'] = base64_encode($body);
