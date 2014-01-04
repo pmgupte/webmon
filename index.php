@@ -27,6 +27,10 @@ if (0 === count($seeds)) {
 $data = json_decode(file_get_contents(FILE_DATA_JSON), true);
 
 $ch = curl_init();
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+curl_setopt($ch, cURLOPT_TIMEOUT, 30);
+
 $htmlDom = new DOMDocument;
 libxml_use_internal_errors(true);
 
@@ -38,8 +42,6 @@ foreach ($seeds as $seed) {
 	debug("* Fetching: $seed");
 	curl_setopt($ch, CURLOPT_URL, $seed);
 	curl_setopt($ch, CURLOPT_REFERER, 'Webmon Script');
-	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 	$httpResponse = curl_exec($ch);
 
 	$htmlDom->loadHTML($httpResponse);
