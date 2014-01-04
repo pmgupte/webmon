@@ -78,27 +78,19 @@ foreach ($seeds as $seed) {
 				echo "+++ positive diff\n--- negative diff\n";
 				if ($counter === $countA) {
 					for ($i=0; $i<$counter; $i++) {
-						if (in_array($contentsA[$i], $negativeDiff)) {
-							$prefixA = '- ';
-							$prefixB = '+ ';
-						} else if (in_array($contentsA[$i], $positiveDiff)) {
-							$prefixA = '+ ';
-							$prefixB = '- ';
+						if (in_array($contentsA[$i], $contentsB)) {
+							echo $contentsA[$i];
+						} else if (in_array($contentsA[$i], $negativeDiff)) {
+							echo '- ' . $contentsA[$i];
 						}
-						echo $prefixA . $contentsA[$i];
-						echo $prefixB . $contentsA[$i];
 					}
 				} else {
 					for ($i=0; $i<$counter; $i++) {
-						if (in_array($contentsB[$i], $negativeDiff)) {
-							$prefixA = '- ';
-							$prefixB = '+ ';
+						if (in_array($contentsB[$i], $contentsA)) {
+							echo $contentsB[$i];
 						} else if (in_array($contentsB[$i], $positiveDiff)) {
-							$prefixA = '+ ';
-							$prefixB = '- ';
+							echo '+ ' . $contentsB[$i];
 						}
-						echo $prefixA . $contentsB[$i];
-						echo $prefixB . $contentsB[$i];
 					}
 				}
 
