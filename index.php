@@ -32,6 +32,9 @@ libxml_use_internal_errors(true);
 
 foreach ($seeds as $seed) {
 	$seed = trim($seed);
+
+	if ('#' === $seed[0]) continue; // this seed is commented out. skip it.
+
 	debug("* Fetching: $seed");
 	curl_setopt($ch, CURLOPT_URL, $seed);
 	curl_setopt($ch, CURLOPT_REFERER, 'Webmon Script');
