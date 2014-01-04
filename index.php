@@ -91,8 +91,10 @@ foreach ($seeds as $seed) {
 						} else {
 							echo '  ' . $contentsA[$i];
 						}
-					} else if (in_array($contentsA[$i], $negativeDiff)) {
+					} else if (in_array($contentsA[$i], $negativeDiff) && '' !== $contentsA[$i]) {
 						echo '- ' . $contentsA[$i];
+					} else if (in_array($contentsB[$i], $positiveDiff) && '' !== $contentsB[$i]) {
+						echo '+ ' . $contentsB[$i];
 					}
 				}
 
