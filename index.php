@@ -70,9 +70,13 @@ foreach ($seeds as $seed) {
 
 				$contentsA = file($filename . FILE_A_SUFFIX);
 				$contentsB = file($filename . FILE_B_SUFFIX);
+				print_r($contentsA);
+				print_r($contentsB);
 
 				$negativeDiff = array_diff($contentsA, $contentsB);
 				$positiveDiff = array_diff($contentsB, $contentsA);
+				print_r($negativeDiff);
+				print_r($positiveDiff);
 
 				$countA = count($contentsA);
 				$countB = count($contentsB);
@@ -83,18 +87,30 @@ foreach ($seeds as $seed) {
 					if (!isset($contentsA[$i])) { $contentsA[$i] = ''; }
 					if (!isset($contentsB[$i])) { $contentsB[$i] = ''; }
 
+					// new and old line is matching. no line diff.
 					if ($contentsA[$i] === $contentsB[$i]) {
 						echo '  ' . $contentsA[$i];
-					} else if (in_array($contentsA[$i], $contentsB)) {
-						if (!in_array($contentsB[$i], $contentsA)) {
-							echo '+ ' . $contentsB[$i];
-						} else {
-							echo '  ' . $contentsA[$i];
+					} else {
+						// is old line present in new contents at some new location?
+						 if (in_array($contentsA[$i], $contentsB)) {
+							if ($contentsB[$i] === '') {
+								echo '*  ' . $contentsA[$i];
+							} else if (!in_array($contentsB[$i], $contentsA)) {
+								echo '+ ' . $contentsB[$i];
+							} else {
+								if ($counter === $countA) {
+									echo '#  ' . $contentsA[$i];
+								} else {
+									echo '  ' . $contentsB[$i];
+								}
+							}
+						} 
+						if (in_array($contentsA[$i], $negativeDiff) && '' !== $contentsA[$i]) {
+							echo '- ' . $contentsA[$i];
 						}
-					} else if (in_array($contentsA[$i], $negativeDiff) && '' !== $contentsA[$i]) {
-						echo '- ' . $contentsA[$i];
-					} else if (in_array($contentsB[$i], $positiveDiff) && '' !== $contentsB[$i]) {
-						echo '+ ' . $contentsB[$i];
+						if (in_array($contentsB[$i], $positiveDiff) && '' !== $contentsB[$i]) {
+							echo '+ ' . $contentsB[$i];
+						}
 					}
 				}
 
