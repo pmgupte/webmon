@@ -62,8 +62,10 @@ foreach ($seeds as $seed) {
 			if ($newChecksum !== $data[$seed]['checksum']) {
 				debug("...", STATUS_CHANGED);
 				// web page changed. find the diff
+				$data[$seed]['contents'] = base64_decode($data[$seed]['contents']);
+
 				$filename = '/tmp/' . str_replace(array(':', '/'), '_', $seed);
-				file_put_contents($filename . FILE_A_SUFFIX, $data[$seed]['content']);
+				file_put_contents($filename . FILE_A_SUFFIX, $data[$seed]['contents']);
 				file_put_contents($filename . FILE_B_SUFFIX, $body);
 
 				$contentsA = file($filename . FILE_A_SUFFIX);
@@ -77,21 +79,20 @@ foreach ($seeds as $seed) {
 				$counter = ($countA > $countB) ? $countA : $countB;
 
 				echo "+++ positive diff\n--- negative diff\n";
-				if ($counter === $countA) {
-					for ($i=0; $i<$counter; $i++) {
-						if (in_array($contentsA[$i], $contentsB)) {
-							echo $contentsA[$i];
-						} else if (in_array($contentsA[$i], $negativeDiff)) {
-							echo '- ' . $contentsA[$i];
-						}
-					}
-				} else {
-					for ($i=0; $i<$counter; $i++) {
-						if (in_array($contentsB[$i], $contentsA)) {
-							echo $contentsB[$i];
-						} else if (in_array($contentsB[$i], $positiveDiff)) {
+				for ($i=0; $i<$counter; $i++) {
+					if (!isset($contentsA[$i])) { $contentsA[$i] = ''; }
+					if (!isset($contentsB[$i])) { $contentsB[$i] = ''; }
+
+					if ($contentsA[$i] === $contentsB[$i]) {
+						echo '  ' . $contentsA[$i];
+					} else if (in_array($contentsA[$i], $contentsB)) {
+						if (!in_array($contentsB[$i], $contentsA)) {
 							echo '+ ' . $contentsB[$i];
+						} else {
+							echo '  ' . $contentsA[$i];
 						}
+					} else if (in_array($contentsA[$i], $negativeDiff)) {
+						echo '- ' . $contentsA[$i];
 					}
 				}
 
