@@ -235,7 +235,6 @@ function help() {
 }
 
 function defineConstants($userDefinedConstants) {
-	print_r($userDefinedConstants);
 	foreach ($userDefinedConstants as $constant => $value) {
 		define('UDC_'.$constant, $value);
 	}
