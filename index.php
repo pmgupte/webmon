@@ -230,6 +230,7 @@ function help() {
 	echo "-i, --inputfile\tInput file containing list of web pages to check. One URL per line. Defaults to ./seeds\n";
 	echo "-s, --statusonly\tReport only status, do not show diff\n";
 	echo "-t, --timeout\tTimeout period in seconds\n";
+	echo "-h, --help\tShows this help text\n";
 	exit(1);
 }
 
