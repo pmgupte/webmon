@@ -68,44 +68,8 @@ foreach ($seeds as $seed) {
 				file_put_contents($filename . FILE_A_SUFFIX, $data[$seed]['contents']);
 				file_put_contents($filename . FILE_B_SUFFIX, $body);
 
-				$contentsA = file($filename . FILE_A_SUFFIX);
-				$contentsB = file($filename . FILE_B_SUFFIX);
+				showDiff($filename . FILE_A_SUFFIX, $filename . FILE_B_SUFFIX);
 
-				$negativeDiff = array_diff($contentsA, $contentsB);
-				$positiveDiff = array_diff($contentsB, $contentsA);
-
-				$countA = count($contentsA);
-				$countB = count($contentsB);
-				$counter = ($countA > $countB) ? $countA : $countB;
-
-				echo "+++ positive diff\n--- negative diff\n";
-				for ($i=0; $i<$counter; $i++) {
-					if (!isset($contentsA[$i])) { $contentsA[$i] = ''; }
-					if (!isset($contentsB[$i])) { $contentsB[$i] = ''; }
-					$prefix = '  '; // two spaces
-					$line = '';
-
-					// new and old line is matching. no line diff.
-					if ($contentsA[$i] === $contentsB[$i]) {
-						$line = $contentsA[$i];
-					} else {
-						// if A[i] present in negative diff, print it with '-' prefix
-						// if B[i] present in A, print it without prefix
-						// else if B[i] present in positive diff, print it with '+' prefix
-						if (in_array($contentsA[$i], $negativeDiff)) {
-							$prefix = '- ';
-							$line = $contentsA[$i];
-						}
-						if (in_array($contentsB[$i], $contentsA)) {
-							$line = $contentsB[$i];
-						} else if (in_array($contentsB[$i], $positiveDiff)) {
-							$prefix = '+ ';
-							$line = $contentsB[$i];
-						}
-					}
-
-					echo $prefix, $line;
-				}
 
 				// update the status in data file
 				$data[$seed]['status'] = STATUS_CHANGED;
@@ -142,6 +106,48 @@ echo "\n*** Done ***\n";
 /******************************************************************************
  * Helper Functions
  *****************************************************************************/
+function showDiff($oldFile, $newFile) {
+	$contentsA = file($oldFile);
+	$contentsB = file($newFile);
+
+	$negativeDiff = array_diff($contentsA, $contentsB);
+	$positiveDiff = array_diff($contentsB, $contentsA);
+
+	$countA = count($contentsA);
+	$countB = count($contentsB);
+	$counter = ($countA > $countB) ? $countA : $countB;
+
+	echo "+++ positive diff\n--- negative diff\n";
+	for ($i=0; $i<$counter; $i++) {
+		if (!isset($contentsA[$i])) { $contentsA[$i] = ''; }
+		if (!isset($contentsB[$i])) { $contentsB[$i] = ''; }
+		$prefix = '  '; // two spaces
+		$line = '';
+
+		// new and old line is matching. no line diff.
+		if ($contentsA[$i] === $contentsB[$i]) {
+			$line = $contentsA[$i];
+		} else {
+			// if A[i] present in negative diff, print it with '-' prefix
+			// if B[i] present in A, print it without prefix
+			// else if B[i] present in positive diff, print it with '+' prefix
+			if (in_array($contentsA[$i], $negativeDiff)) {
+				$prefix = '- ';
+				$line = $contentsA[$i];
+			}
+			if (in_array($contentsB[$i], $contentsA)) {
+				$line = $contentsB[$i];
+			} else if (in_array($contentsB[$i], $positiveDiff)) {
+				$prefix = '+ ';
+				$line = $contentsB[$i];
+			}
+		}
+
+		echo $prefix, $line;
+	}
+
+} // showDiff
+
 function debug($message, $level=DEBUG_LEVEL_INFO) {
 	$timestamp = date('Y-m-d H:i:s');
 
