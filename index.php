@@ -9,15 +9,24 @@ require('constants.php');
 
 $longopts = array(
 	"verbose",
-	"seedfile:",
+	"inputfile:",
+	"status",
 	"timeout::"
 	);
-$options = getopt("vs:t::", $longopts);
+$options = getopt("vi:st::", $longopts);
 if (!is_array($options)) {
 	echo "There was some error reading options.\n";
 	help();
 }
-print_r($options); exit;
+print_r($options);
+if (count($options) < 2) {
+	help();
+}
+
+foreach ($options as $option=>$value) {
+	echo "$option == $value\n";
+}
+exit;
 
 /*
  * Touch required files
@@ -155,7 +164,6 @@ function showDiff($oldFile, $newFile) {
 
 		echo $prefix, $line;
 	}
-
 } // showDiff
 
 function debug($message, $level=DEBUG_LEVEL_INFO) {
@@ -185,5 +193,14 @@ function precheck() {
 
 function help() {
 	//TODO: show help text.
+	$myName = __FILE__;
+
+	echo "Syntax: $myName <options>\n";
+	echo "Options: [-v] -i [-s] [-t]\n";
+	echo "-v, --verbose\tVerbose\n";
+	echo "-i, --inputfile\tInput file containing list of web pages to check. One URL per line\n";
+	echo "-s, --statusonly\tReport only status, do not show diff\n";
+	echo "-t, --timeout\tTimeout period in seconds\n";
+	exit(1);
 }
 ?>
