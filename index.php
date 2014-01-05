@@ -3,11 +3,21 @@
 /*
  * Primary Checks
  */
-if (!function_exists('curl_init')) {
-	die('Need PHP cURL installed and enabled.');
-}
+precheck();
 
 require('constants.php');
+
+$longopts = array(
+	"verbose",
+	"seedfile:",
+	"timeout::"
+	);
+$options = getopt("vs:t::", $longopts);
+if (!is_array($options)) {
+	echo "There was some error reading options.\n";
+	help();
+}
+print_r($options); exit;
 
 /*
  * Touch required files
@@ -166,4 +176,14 @@ function debug($message, $level=DEBUG_LEVEL_INFO) {
 		}
 	}
 } // debug
+
+function precheck() {
+	if (!function_exists('curl_init')) {
+		die('Need PHP cURL installed and enabled.');
+	}
+} // precheck
+
+function help() {
+	//TODO: show help text.
+}
 ?>
