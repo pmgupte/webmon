@@ -91,24 +91,15 @@ foreach ($seeds as $seed) {
 					if ($contentsA[$i] === $contentsB[$i]) {
 						echo '  ' . $contentsA[$i];
 					} else {
-						// is old line present in new contents at some new location?
-						 if (in_array($contentsA[$i], $contentsB)) {
-							if ($contentsB[$i] === '') {
-								echo '*  ' . $contentsA[$i];
-							} else if (!in_array($contentsB[$i], $contentsA)) {
-								echo '+ ' . $contentsB[$i];
-							} else {
-								if ($counter === $countA) {
-									echo '#  ' . $contentsA[$i];
-								} else {
-									echo '  ' . $contentsB[$i];
-								}
-							}
-						} 
-						if (in_array($contentsA[$i], $negativeDiff) && '' !== $contentsA[$i]) {
+						// if A[i] present in negative diff, print it with '-' prefix
+						// if B[i] present in A, print it without prefix
+						// else if B[i] present in positive diff, print it with '+' prefix
+						if (in_array($contentsA[$i], $negativeDiff)) {
 							echo '- ' . $contentsA[$i];
 						}
-						if (in_array($contentsB[$i], $positiveDiff) && '' !== $contentsB[$i]) {
+						if (in_array($contentsB[$i], $contentsA)) {
+							echo '  ' . $contentsB[$i];
+						} else if (in_array($contentsB[$i], $positiveDiff)) {
 							echo '+ ' . $contentsB[$i];
 						}
 					}
