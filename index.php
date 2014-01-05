@@ -70,13 +70,9 @@ foreach ($seeds as $seed) {
 
 				$contentsA = file($filename . FILE_A_SUFFIX);
 				$contentsB = file($filename . FILE_B_SUFFIX);
-				print_r($contentsA);
-				print_r($contentsB);
 
 				$negativeDiff = array_diff($contentsA, $contentsB);
 				$positiveDiff = array_diff($contentsB, $contentsA);
-				print_r($negativeDiff);
-				print_r($positiveDiff);
 
 				$countA = count($contentsA);
 				$countB = count($contentsB);
@@ -86,23 +82,29 @@ foreach ($seeds as $seed) {
 				for ($i=0; $i<$counter; $i++) {
 					if (!isset($contentsA[$i])) { $contentsA[$i] = ''; }
 					if (!isset($contentsB[$i])) { $contentsB[$i] = ''; }
+					$prefix = '  '; // two spaces
+					$line = '';
 
 					// new and old line is matching. no line diff.
 					if ($contentsA[$i] === $contentsB[$i]) {
-						echo '  ' . $contentsA[$i];
+						$line = $contentsA[$i];
 					} else {
 						// if A[i] present in negative diff, print it with '-' prefix
 						// if B[i] present in A, print it without prefix
 						// else if B[i] present in positive diff, print it with '+' prefix
 						if (in_array($contentsA[$i], $negativeDiff)) {
-							echo '- ' . $contentsA[$i];
+							$prefix = '- ';
+							$line = $contentsA[$i];
 						}
 						if (in_array($contentsB[$i], $contentsA)) {
-							echo '  ' . $contentsB[$i];
+							$line = $contentsB[$i];
 						} else if (in_array($contentsB[$i], $positiveDiff)) {
-							echo '+ ' . $contentsB[$i];
+							$prefix = '+ ';
+							$line = $contentsB[$i];
 						}
 					}
+
+					echo $prefix, $line;
 				}
 
 				// update the status in data file
