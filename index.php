@@ -9,35 +9,63 @@ require('constants.php');
 
 $longopts = array(
 	"verbose",
-	"inputfile:",
-	"status",
-	"timeout::"
+	"inputfile::",
+	"statusonly",
+	"timeout::",
+	"help"
 	);
-$options = getopt("vi:st::", $longopts);
+$options = getopt("vi:st::h", $longopts);
 if (!is_array($options)) {
 	echo "There was some error reading options.\n";
 	help();
 }
-print_r($options);
-if (count($options) < 2) {
-	help();
+
+// default values
+$userDefinedConstants = array();
+$userDefinedConstants['VERBOSE'] = false;
+$userDefinedConstants['INPUT_FILE'] = './seeds';
+$userDefinedConstants['STATUS_ONLY'] = false;
+$userDefinedConstants['TIMEOUT'] = 30;
+
+foreach ($options as $option => $value) {
+	switch($option) {
+		case 'v':
+		case 'verbose':
+			$userDefinedConstants['VERBOSE'] = true;
+			break;
+		case 'i':
+		case 'inputfile':
+			$userDefinedConstants['INPUT_FILE'] = $value;
+			break;
+		case 's':
+		case 'statusonly':
+			$userDefinedConstants['STATUS_ONLY'] = true;
+			break;
+		case 't':
+		case 'timeout':
+			$userDefinedConstants['TIMEOUT'] = $value;
+			break;
+		case 'h':
+		case 'help':
+			help();
+			break;
+		default:
+			debug("Unknown option: $option = $value");
+	}
 }
 
-foreach ($options as $option=>$value) {
-	echo "$option == $value\n";
-}
-exit;
+defineConstants($userDefinedConstants);
 
 /*
  * Touch required files
  */
-touch(FILE_SEEDS);
+
+touch(UDC_INPUT_FILE);
 touch(FILE_DATA_JSON);
 touch(FILE_DEBUG_LOG);
 
-$seeds = file(FILE_SEEDS, FILE_SKIP_EMPTY_LINES && FILE_IGNORE_NEW_LINES);
+$seeds = file(UDC_INPUT_FILE, FILE_SKIP_EMPTY_LINES && FILE_IGNORE_NEW_LINES);
 $seedsCount = count($seeds);
-debug("$seedsCount URLs found in seeds file.");
 
 if (0 === count($seeds)) {
 	die('Exiting.');
@@ -49,7 +77,7 @@ $data = json_decode(file_get_contents(FILE_DATA_JSON), true);
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+curl_setopt($ch, CURLOPT_TIMEOUT, UDC_TIMEOUT);
 
 $htmlDom = new DOMDocument;
 libxml_use_internal_errors(true);
@@ -81,14 +109,15 @@ foreach ($seeds as $seed) {
 			if ($newChecksum !== $data[$seed]['checksum']) {
 				debug("...", STATUS_CHANGED);
 				// web page changed. find the diff
-				$data[$seed]['contents'] = base64_decode($data[$seed]['contents']);
+				if (!UDC_STATUS_ONLY) {
+					$data[$seed]['contents'] = base64_decode($data[$seed]['contents']);
 
-				$filename = '/tmp/' . str_replace(array(':', '/'), '_', $seed);
-				file_put_contents($filename . FILE_A_SUFFIX, $data[$seed]['contents']);
-				file_put_contents($filename . FILE_B_SUFFIX, $body);
+					$filename = '/tmp/' . str_replace(array(':', '/'), '_', $seed);
+					file_put_contents($filename . FILE_A_SUFFIX, $data[$seed]['contents']);
+					file_put_contents($filename . FILE_B_SUFFIX, $body);
 
-				showDiff($filename . FILE_A_SUFFIX, $filename . FILE_B_SUFFIX);
-
+					showDiff($filename . FILE_A_SUFFIX, $filename . FILE_B_SUFFIX);
+				}
 
 				// update the status in data file
 				$data[$seed]['status'] = STATUS_CHANGED;
@@ -171,14 +200,14 @@ function debug($message, $level=DEBUG_LEVEL_INFO) {
 
 	if (is_string($message)) {
 		file_put_contents(FILE_DEBUG_LOG, "[$timestamp] $level: $message\n", FILE_APPEND);
-		if (VERBOSE) {
+		if (UDC_VERBOSE) {
 			echo "[$timestamp] $level: $message\n";
 		}
 	} else {
 		file_put_contents(FILE_DEBUG_LOG, "[$timestamp] $level: ", FILE_APPEND);
 		file_put_contents(FILE_DEBUG_LOG, $message, FILE_APPEND);
 		file_put_contents(FILE_DEBUG_lOG, "\n", FILE_APPEND);
-		if (VERBOSE) {
+		if (UDC_VERBOSE) {
 			echo "[$timestamp] $level: ";
 			echo var_export($message, true), "\n";
 		}
@@ -196,11 +225,18 @@ function help() {
 	$myName = __FILE__;
 
 	echo "Syntax: $myName <options>\n";
-	echo "Options: [-v] -i [-s] [-t]\n";
+	echo "Options: [-v] [-i] [-s] [-t]\n";
 	echo "-v, --verbose\tVerbose\n";
-	echo "-i, --inputfile\tInput file containing list of web pages to check. One URL per line\n";
+	echo "-i, --inputfile\tInput file containing list of web pages to check. One URL per line. Defaults to ./seeds\n";
 	echo "-s, --statusonly\tReport only status, do not show diff\n";
 	echo "-t, --timeout\tTimeout period in seconds\n";
 	exit(1);
 }
+
+function defineConstants($userDefinedConstants) {
+	print_r($userDefinedConstants);
+	foreach ($userDefinedConstants as $constant => $value) {
+		define('UDC_'.$constant, $value);
+	}
+} // defineConstants
 ?>
