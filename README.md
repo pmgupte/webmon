@@ -1,4 +1,4 @@
-webmon
+Webmon
 ======
 ##License
 Webmon - program to monitor web pages for change and detect the change
