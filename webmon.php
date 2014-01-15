@@ -70,18 +70,18 @@ class Webmon {
 		 */
 
 		touch($this->userDefinedInputFile);
-		touch(self::dataJsonFile);
-		touch(self::debugLogFile);
+		touch($this->dataJsonFile);
+		touch($this->debugLogFile);
 
 		$seeds = file($this->userDefinedInputFile, FILE_SKIP_EMPTY_LINES && FILE_IGNORE_NEW_LINES);
 		$seedsCount = count($seeds);
 
 		if (0 === count($seeds)) {
-			throw new Exception(self::noSeedsException);
+			throw new Exception($this->noSeedsException);
 		}
 
 		// Load data from last run
-		$data = json_decode(file_get_contents(self::dataJsonFile), true);
+		$data = json_decode(file_get_contents($this->dataJsonFile), true);
 
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -98,7 +98,7 @@ class Webmon {
 
 			$this->debug("Fetching: $seed");
 			curl_setopt($ch, CURLOPT_URL, $seed);
-			curl_setopt($ch, CURLOPT_REFERER, self::curlReferer);
+			curl_setopt($ch, CURLOPT_REFERER, $this->curlReferer);
 			$httpResponse = curl_exec($ch);
 
 			if (!$httpResponse) {
@@ -116,35 +116,34 @@ class Webmon {
 				if (isset($data[$seed])) {
 					// we have processed this seed at least once before
 					if ($newChecksum !== $data[$seed]['checksum']) {
-						$this->debug("...", self::statusChanged);
+						$this->debug("...", $this->statusChanged);
 						// web page changed. find the diff
 						if (!$this->userDefinedStatusOnly) {
 							$data[$seed]['contents'] = base64_decode($data[$seed]['contents']);
 
 							$filename = '/tmp/' . str_replace(array(':', '/'), '_', $seed);
-							file_put_contents($filename . self::fileASuffix, $data[$seed]['contents']);
-							file_put_contents($filename . self::fileBSuffix, $body);
+							file_put_contents($filename . $this->fileASuffix, $data[$seed]['contents']);
+							file_put_contents($filename . $this->fileBSuffix, $body);
 
-							$this->showDiff($filename . self::fileASuffix, $filename . self::fileBSuffix);
+							$this->showDiff($filename . $this->fileASuffix, $filename . $this->fileBSuffix);
 						}
 
 						// update the status in data file
-						$data[$seed]['status'] = self::statusChanged;
+						$data[$seed]['status'] = $this->statusChanged;
 						$data[$seed]['checksum'] = $newChecksum;
 						$data[$seed]['contents'] = base64_encode($body);
-
 					} else {
 						// no change. just update status
-						$this->debug("...", self::statusNoChange);
-						$data[$seed]['status'] = self::statusNoChange;
+						$this->debug("...", $this->statusNoChange);
+						$data[$seed]['status'] = $this->statusNoChange;
 					}
 
 					$data[$seed]['lastChecked'] = microtime();
 				} else {
 					// this is first processing of this seed
-					$this->debug("...", self::statusNew);
+					$this->debug("...", $this->statusNew);
 					$data[$seed] = array(
-						'status' => self::statusNew,
+						'status' => $this->statusNew,
 						'checksum' => $newChecksum,
 						'contents' => base64_encode($body),
 						'lastChecked' => microtime()
@@ -154,7 +153,7 @@ class Webmon {
 		} // foreach on seeds
 
 		// save updated data
-		file_put_contents(self::dataJsonFile, json_encode($data));
+		file_put_contents($this->dataJsonFile, json_encode($data));
 
 		libxml_clear_errors();
 		curl_close($ch);
@@ -204,19 +203,19 @@ class Webmon {
 
 	public function debug($message, $level = null) {
 		if (empty($level)) {
-			 $level = self::debugLevelInfo;
+			 $level = $this->debugLevelInfo;
 		}
 		$timestamp = date('Y-m-d H:i:s');
 
 		if (is_string($message)) {
-			file_put_contents(self::debugLogFile, "[$timestamp] $level: $message\n", FILE_APPEND);
+			file_put_contents($this->debugLogFile, "[$timestamp] $level: $message\n", FILE_APPEND);
 			if ($this->userDefinedVerbose) {
 				echo "[$timestamp] $level: $message\n";
 			}
 		} else {
-			file_put_contents(self::debugLogFile, "[$timestamp] $level: ", FILE_APPEND);
-			file_put_contents(self::debugLogFile, $message, FILE_APPEND);
-			file_put_contents(self::debugLogFile, "\n", FILE_APPEND);
+			file_put_contents($this->debugLogFile, "[$timestamp] $level: ", FILE_APPEND);
+			file_put_contents($this->debugLogFile, $message, FILE_APPEND);
+			file_put_contents($this->debugLogFile, "\n", FILE_APPEND);
 			if ($this->userDefinedVerbose) {
 				echo "[$timestamp] $level: ";
 				echo var_export($message, true), "\n";
@@ -226,7 +225,7 @@ class Webmon {
 
 	private function preCheck() {
 		if (!function_exists('curl_init')) {
-			throw new Exception(self::noCurlExecption);
+			throw new Exception($this->noCurlExecption);
 		}
 	} // precheck
 
