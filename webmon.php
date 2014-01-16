@@ -22,7 +22,6 @@
 
 class Webmon {
 	const DATA_JSON_FILE = './data.json';
-	const DEBUG_LOG_FILE = './webmon.log';
 	const FILE_A_SUFFIX = '_a.txt';
 	const FILE_B_SUFFIX = '_b.txt';
 	const STATUS_NEW = 'New';
@@ -49,14 +48,12 @@ class Webmon {
 
 		$this->userDefinedInputFile = $userDefinedOptions['inputFile'];
 		$this->userDefinedStatusOnly = $userDefinedOptions['statusOnly'];
-		$this->userDefinedVerbose = $userDefinedOptions['verbose'];
 		$this->userDefinedTimeout = $userDefinedOptions['timeout'];
 	}
 
 	public function run() {
 		touch($this->userDefinedInputFile);
 		touch(self::DATA_JSON_FILE);
-		touch(self::DEBUG_LOG_FILE);
 
 		$seeds = file($this->userDefinedInputFile, FILE_SKIP_EMPTY_LINES && FILE_IGNORE_NEW_LINES);
 
@@ -188,20 +185,10 @@ class Webmon {
 	public function debug($message) {
 		$timestamp = date('Y-m-d H:i:s');
 
-		if (is_string($message)) {
-			file_put_contents(self::DEBUG_LOG_FILE, "[$timestamp]: $message\n", FILE_APPEND);
-			if ($this->userDefinedVerbose) {
-				echo "[$timestamp]: $message\n";
-			}
-		} else {
-			file_put_contents(self::DEBUG_LOG_FILE, "[$timestamp]: ", FILE_APPEND);
-			file_put_contents(self::DEBUG_LOG_FILE, $message, FILE_APPEND);
-			file_put_contents(self::DEBUG_LOG_FILE, "\n", FILE_APPEND);
-			if ($this->userDefinedVerbose) {
-				echo "[$timestamp]: ";
-				echo var_export($message, true), "\n";
-			}
+		if (!is_string($message)) {
+			$message = var_export($message);
 		}
+		echo "[$timestamp]: $message\n";
 	} // debug
 
 	private function preCheck() {
@@ -214,8 +201,7 @@ class Webmon {
 		$myName = __FILE__;
 
 		echo "Syntax: $myName <options>\n";
-		echo "Options: [-v] [-i] [-s] [-t]\n";
-		echo "-v, --verbose\tVerbose\n";
+		echo "Options: [-i] [-s] [-t]\n";
 		echo "-i, --inputfile\tInput file containing list of web pages to check. One URL per line. Defaults to ./seeds\n";
 		echo "-s, --statusonly\tReport only status, do not show diff\n";
 		echo "-t, --timeout\tTimeout period in seconds\n";
@@ -224,13 +210,12 @@ class Webmon {
 }
 
 $longopts = array(
-	"verbose",
 	"inputfile::",
 	"statusonly",
 	"timeout::",
 	"help"
 	);
-$options = getopt("vi:st::h", $longopts);
+$options = getopt("i:st::h", $longopts);
 
 if (!is_array($options)) {
 	echo "There was some error reading options.\n";
@@ -239,17 +224,12 @@ if (!is_array($options)) {
 
 // default values
 $userDefinedOptions = array();
-$userDefinedOptions['verbose'] = false;
 $userDefinedOptions['inputFile'] = './seeds';
 $userDefinedOptions['statusOnly'] = false;
 $userDefinedOptions['timeout'] = 30;
 
 foreach ($options as $option => $value) {
 	switch($option) {
-		case 'v':
-		case 'verbose':
-			$userDefinedOptions['verbose'] = true;
-			break;
 		case 'i':
 		case 'inputfile':
 			$userDefinedOptions['inputFile'] = $value;
