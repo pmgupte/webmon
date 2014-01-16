@@ -39,9 +39,10 @@ class Webmon {
 
 	/**
 	 * Constructor.
+	 * @access public
 	 * @param inputFile String full path of input seed file
 	 * @param statusOnly Boolean true means only report the status (do not show diff)
-	 * 
+	 * @return none
 	 */
 	public function __construct(Array $userDefinedOptions) {
 		$this->preCheck();
@@ -51,6 +52,12 @@ class Webmon {
 		$this->userDefinedTimeout = $userDefinedOptions['timeout'];
 	}
 
+	/**
+	 * run
+	 * @access public
+	 * @param none
+	 * @return none
+	 */
 	public function run() {
 		touch($this->userDefinedInputFile);
 		touch(self::DATA_JSON_FILE);
@@ -141,6 +148,13 @@ class Webmon {
 		echo "\n*** Done ***\n";	
 	} // run
 
+	/**
+	 * showDiff
+	 * @access private
+	 * @param oldFile string full path to file containing old contents
+	 * @param newFile string full path to file containing new contents
+	 * @return none
+	 */
 	private function showDiff($oldFile, $newFile) {
 		$contentsA = file($oldFile);
 		$contentsB = file($newFile);
@@ -182,6 +196,12 @@ class Webmon {
 		}
 	} // showDiff
 
+	/**
+	 * debug
+	 * @access public
+	 * @param message string message to print
+	 * @return none
+	 */
 	public function debug($message) {
 		$timestamp = date('Y-m-d H:i:s');
 
@@ -191,12 +211,24 @@ class Webmon {
 		echo "[$timestamp]: $message\n";
 	} // debug
 
+	/**
+	 * preCheck
+	 * @access private
+	 * @param none
+	 * @return none
+	 */
 	private function preCheck() {
 		if (!function_exists('curl_init')) {
 			throw new Exception(self::NO_CURL_EXCEPTION);
 		}
 	} // precheck
 
+	/**
+	 * help
+	 * @access public
+	 * @param none
+	 * @return none
+	 */
 	public static function help() {
 		$myName = __FILE__;
 
