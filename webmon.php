@@ -36,6 +36,7 @@ class Webmon {
 	private $userDefinedStatusOnly = null;
 	private $userDefinedVerbose = null;
 	private $userDefinedTimeout = 30;
+	private $userDefinedUrl = null;
 
 	/**
 	 * Constructor.
@@ -50,6 +51,28 @@ class Webmon {
 		$this->userDefinedInputFile = $userDefinedOptions['inputFile'];
 		$this->userDefinedStatusOnly = $userDefinedOptions['statusOnly'];
 		$this->userDefinedTimeout = $userDefinedOptions['timeout'];
+		if (isset($userDefinedOptions['url'])) {
+			$this->userDefinedUrl = $userDefinedOptions['url'];
+		}
+	}
+
+	/**
+	 * cleanSeeds
+	 * removes commented seeds
+	 * @access private
+	 * @param seeds Array array of seeds read from input file
+	 * @return Array array of cleaned seeds
+	 */
+	private function cleanSeeds($seeds) {
+		$cleanSeeds = array();
+
+		foreach ($seeds as $seed) {
+			if ($seed[0] !== '#') {
+				$cleanSeeds[] = trim($seed);
+			}
+		}
+
+		return $cleanSeeds;
 	}
 
 	/**
@@ -63,6 +86,11 @@ class Webmon {
 		touch(self::DATA_JSON_FILE);
 
 		$seeds = file($this->userDefinedInputFile, FILE_SKIP_EMPTY_LINES && FILE_IGNORE_NEW_LINES);
+		$seeds = $this->cleanSeeds($seeds);
+
+		if ($this->userDefinedUrl !== null) {
+			$seeds[] = $this->userDefinedUrl;
+		}
 
 		if (0 === count($seeds)) {
 			throw new Exception(self::NO_SEEDS_EXCEPTION);
@@ -80,10 +108,6 @@ class Webmon {
 		libxml_use_internal_errors(true);
 
 		foreach ($seeds as $seed) {
-			$seed = trim($seed);
-
-			if ('#' === $seed[0]) continue; // this seed is commented out. skip it.
-
 			$this->debug("Fetching: $seed");
 			curl_setopt($curlHandle, CURLOPT_URL, $seed);
 			curl_setopt($curlHandle, CURLOPT_REFERER, self::CURL_REFERER);
@@ -131,7 +155,7 @@ class Webmon {
 					// this is first processing of this seed
 					$this->debug(self::STATUS_NEW);
 					$data[$seed] = array(
-						'status' => $this->STATUS_NEW,
+						'status' => self::STATUS_NEW,
 						'checksum' => $newChecksum,
 						'contents' => base64_encode($body),
 						'lastChecked' => microtime()
@@ -233,8 +257,9 @@ class Webmon {
 		$myName = __FILE__;
 
 		echo "Syntax: $myName <options>\n";
-		echo "Options: [-i] [-s] [-t]\n";
-		echo "-i, --inputfile\tInput file containing list of web pages to check. One URL per line. Defaults to ./seeds\n";
+		echo "Options: [-i|-u] [-s] [-t]\n";
+		echo "-i, --inputfile\tInput file containing list of web pages to check. One URL per line.\n";
+		echo "-u, --url\tURL to check.\n";
 		echo "-s, --statusonly\tReport only status, do not show diff\n";
 		echo "-t, --timeout\tTimeout period in seconds\n";
 		echo "-h, --help\tShows this help text\n";
@@ -242,21 +267,33 @@ class Webmon {
 }
 
 $longopts = array(
-	"inputfile::",
+	"inputfile:",
+	"url:",
 	"statusonly",
 	"timeout::",
 	"help"
 	);
-$options = getopt("i:st::h", $longopts);
+$options = getopt("i:u:st::h", $longopts);
 
 if (!is_array($options)) {
 	echo "There was some error reading options.\n";
 	Webmon::help();
 }
 
+$optionKeys = array_keys($options);
+if (	!in_array('i', $optionKeys) && 
+	!in_array('inputfile', $optionKeys) &&
+	!in_array('u', $optionKeys) &&
+	!in_array('url', $optionKeys)) {
+	echo "Please use either --inputfile or --url option. One of them is required.\n";
+	Webmon::help();
+} else if (	(in_array('i', $optionKeys) || in_array('inputfile', $optionKeys)) &&
+		(in_array('u', $optionKeys) || in_array('url', $optionKeys))) {
+	echo "Option --url will be added to list from option --inputfile.\n";
+}
+
 // default values
 $userDefinedOptions = array();
-$userDefinedOptions['inputFile'] = './seeds';
 $userDefinedOptions['statusOnly'] = false;
 $userDefinedOptions['timeout'] = 30;
 
@@ -265,6 +302,10 @@ foreach ($options as $option => $value) {
 		case 'i':
 		case 'inputfile':
 			$userDefinedOptions['inputFile'] = $value;
+			break;
+		case 'u':
+		case 'url':
+			$userDefinedOptions['url'] = $value;
 			break;
 		case 's':
 		case 'statusonly':
