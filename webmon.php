@@ -164,6 +164,8 @@ class Webmon {
 						'lastChecked' => microtime()
 					);
 				} // if-else on isset data[seed]
+				$data[$seed]['http_code'] = $info['http_code'];
+				$data[$seed]['content_type'] = $info['content_type'];
 			} // foreach on bodyTags
 		} // foreach on seeds
 
