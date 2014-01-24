@@ -103,6 +103,7 @@ class Webmon {
 		curl_setopt($curlHandle, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($curlHandle, CURLOPT_FOLLOWLOCATION, true);
 		curl_setopt($curlHandle, CURLOPT_TIMEOUT, $this->userDefinedTimeout);
+		curl_setopt($curlHandle, CURLOPT_FILETIME, true);
 
 		$htmlDom = new DOMDocument;
 		libxml_use_internal_errors(true);
@@ -112,6 +113,8 @@ class Webmon {
 			curl_setopt($curlHandle, CURLOPT_URL, $seed);
 			curl_setopt($curlHandle, CURLOPT_REFERER, self::CURL_REFERER);
 			$httpResponse = curl_exec($curlHandle);
+			$info = curl_getinfo($curlHandle);
+			$this->debug($info);
 
 			if (!$httpResponse) {
 				$this->debug(curl_error($curlHandle));
@@ -230,7 +233,7 @@ class Webmon {
 		$timestamp = date('Y-m-d H:i:s');
 
 		if (!is_string($message)) {
-			$message = var_export($message);
+			$message = var_export($message, true);
 		}
 		echo "[$timestamp]: $message\n";
 	} // debug
