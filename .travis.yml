@@ -12,6 +12,6 @@ before_script:
 
 script:
  - pwd;
- - ll;
+ - ls -l;
  - phpmd webmon.php text codesize
  - phpunit UnitTest test/WebmonTest.php
