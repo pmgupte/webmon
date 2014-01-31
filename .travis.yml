@@ -12,3 +12,4 @@ before_script:
 
 script:
  - phpmd webmon.php text codesize
+ - phpunit UnitTest test/WebmonTest.php
