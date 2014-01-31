@@ -1,5 +1,8 @@
 Webmon
 ======
+
+[![Build Status](https://travis-ci.org/pmgupte/webmon.png?branch=master)](https://travis-ci.org/pmgupte/webmon)
+
 ##License
 Webmon - program to monitor web pages for change and detect the change
 Copyright (C) 2013 Prabhas Gupte
