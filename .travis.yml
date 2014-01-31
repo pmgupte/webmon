@@ -11,7 +11,7 @@ before_script:
   - phpenv rehash;
 
 script:
- - pwd
- - ll
+ - pwd;
+ - ll;
  - phpmd webmon.php text codesize
  - phpunit UnitTest test/WebmonTest.php
