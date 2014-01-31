@@ -98,7 +98,6 @@ class Webmon {
 		touch($this->userDefinedInputFile);
 		touch(self::DATA_JSON_FILE);
 
-
 		// Load data from last run
 		$data = json_decode(file_get_contents(self::DATA_JSON_FILE), true);
 
