@@ -111,7 +111,7 @@ class Webmon {
 		$htmlDom = new DOMDocument;
 		libxml_use_internal_errors(true);
 
-		foreach ($seeds as $seed) {
+		foreach ($this->seeds as $seed) {
 			$this->debug("Fetching: $seed");
 			curl_setopt($curlHandle, CURLOPT_URL, $seed);
 			curl_setopt($curlHandle, CURLOPT_REFERER, self::CURL_REFERER);
