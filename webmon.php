@@ -294,6 +294,7 @@ if (	!in_array('i', $optionKeys) &&
 	!in_array('url', $optionKeys)) {
 	echo "Please use either --inputfile or --url option. One of them is required.\n";
 	Webmon::help();
+	exit(1);
 } else if (	(in_array('i', $optionKeys) || in_array('inputfile', $optionKeys)) &&
 		(in_array('u', $optionKeys) || in_array('url', $optionKeys))) {
 	echo "Option --url will be added to list from option --inputfile.\n";
