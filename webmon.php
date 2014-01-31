@@ -38,6 +38,7 @@ class Webmon {
 	private $userDefinedTimeout = 30;
 	private $userDefinedUrl = null;
 
+	private $seeds = array();
 	/**
 	 * Constructor.
 	 * @access public
@@ -54,6 +55,18 @@ class Webmon {
 		if (isset($userDefinedOptions['url'])) {
 			$this->userDefinedUrl = $userDefinedOptions['url'];
 		}
+
+		$this->seeds = file($this->userDefinedInputFile, FILE_SKIP_EMPTY_LINES && FILE_IGNORE_NEW_LINES);
+		$this->seeds = $this->cleanSeeds($this->seeds);
+
+		if ($this->userDefinedUrl !== null) {
+			$this->seeds[] = $this->userDefinedUrl;
+		}
+
+		if (0 === count($this->seeds)) {
+			throw new Exception(self::NO_SEEDS_EXCEPTION);
+		}
+
 	}
 
 	/**
@@ -85,16 +98,6 @@ class Webmon {
 		touch($this->userDefinedInputFile);
 		touch(self::DATA_JSON_FILE);
 
-		$seeds = file($this->userDefinedInputFile, FILE_SKIP_EMPTY_LINES && FILE_IGNORE_NEW_LINES);
-		$seeds = $this->cleanSeeds($seeds);
-
-		if ($this->userDefinedUrl !== null) {
-			$seeds[] = $this->userDefinedUrl;
-		}
-
-		if (0 === count($seeds)) {
-			throw new Exception(self::NO_SEEDS_EXCEPTION);
-		}
 
 		// Load data from last run
 		$data = json_decode(file_get_contents(self::DATA_JSON_FILE), true);
