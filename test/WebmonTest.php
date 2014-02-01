@@ -46,5 +46,26 @@ class WebmonTest extends PHPUnit_Framework_TestCase {
 		$jsonDecoded = json_decode($json, true);
 		$this->assertTrue(is_array($jsonDecoded));
 	}
+
+	public function testNonExistingURL() {
+		exec($this->webmonCmd . " -t10 -uhttp://some-non-existing-website-url.com", $output, $returnValue);
+		$passed = $this->matchesInArray("Couldn't resolve host 'some-non-existing-website-url.com'", $output) || $this->matchesInArray("name lookup timed out", $output);
+		$this->assertTrue($passed);
+	}
+
+	public function testNonExistingIP() {
+		exec($this->webmonCmd . " -t10 -uhttp://999.0.0.0", $output, $returnValue);
+		$this->assertTrue($this->matchesInArray("Couldn't resolve host '999.0.0.0'", $output));
+	}
+
+	private function matchesInArray($needle, $array) {
+		foreach ($array as $value) {
+			if (false !== strpos($value, $needle)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
 }
 ?>
