@@ -34,7 +34,6 @@ class Webmon {
 
 	private $userDefinedInputFile = null;
 	private $userDefinedStatusOnly = null;
-	private $userDefinedVerbose = null;
 	private $userDefinedTimeout = 30;
 	private $userDefinedUrl = null;
 
