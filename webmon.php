@@ -49,15 +49,16 @@ class Webmon {
 	public function __construct(Array $userDefinedOptions) {
 		$this->preCheck();
 
-		$this->userDefinedInputFile = $userDefinedOptions['inputFile'];
+		if (isset($userDefinedOptions['inputFile'])) {
+			$this->userDefinedInputFile = $userDefinedOptions['inputFile'];
+			$this->seeds = file($this->userDefinedInputFile, FILE_SKIP_EMPTY_LINES && FILE_IGNORE_NEW_LINES);
+			$this->seeds = $this->cleanSeeds($this->seeds);
+		}
 		$this->userDefinedStatusOnly = $userDefinedOptions['statusOnly'];
 		$this->userDefinedTimeout = $userDefinedOptions['timeout'];
 		if (isset($userDefinedOptions['url'])) {
 			$this->userDefinedUrl = $userDefinedOptions['url'];
 		}
-
-		$this->seeds = file($this->userDefinedInputFile, FILE_SKIP_EMPTY_LINES && FILE_IGNORE_NEW_LINES);
-		$this->seeds = $this->cleanSeeds($this->seeds);
 
 		if ($this->userDefinedUrl !== null) {
 			$this->seeds[] = $this->userDefinedUrl;
@@ -95,7 +96,9 @@ class Webmon {
 	 * @return none
 	 */
 	public function run() {
-		touch($this->userDefinedInputFile);
+		if ($this->userDefinedInputFile !== null) {
+			touch($this->userDefinedInputFile);
+		}
 		touch(self::DATA_JSON_FILE);
 
 		// Load data from last run
@@ -116,7 +119,6 @@ class Webmon {
 			curl_setopt($curlHandle, CURLOPT_REFERER, self::CURL_REFERER);
 			$httpResponse = curl_exec($curlHandle);
 			$info = curl_getinfo($curlHandle);
-			$this->debug($info);
 
 			if (!$httpResponse) {
 				$this->debug(curl_error($curlHandle));
