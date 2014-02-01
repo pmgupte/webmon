@@ -11,5 +11,5 @@ before_script:
   - phpenv rehash;
 
 script:
- - phpmd webmon.php text codesize
+ - phpmd webmon.php text codesize, unusedcode, cleancode, controversial, design, naming
  - phpunit UnitTest test/WebmonTest.php
