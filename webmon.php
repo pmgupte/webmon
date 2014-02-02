@@ -272,7 +272,11 @@ class Webmon {
 		echo "-t, --timeout\tTimeout period in seconds\n";
 		echo "-h, --help\tShows this help text\n";
 	}
-}
+} // End of Webmon class
+
+/*
+ * Actual script execution starts here.
+ */
 
 $longopts = array(
 	"inputfile:",
