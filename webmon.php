@@ -117,12 +117,14 @@ class Webmon {
 			curl_setopt($curlHandle, CURLOPT_URL, $seed);
 			curl_setopt($curlHandle, CURLOPT_REFERER, self::CURL_REFERER);
 			$httpResponse = curl_exec($curlHandle);
-			$info = curl_getinfo($curlHandle);
 
 			if (!$httpResponse) {
 				$this->debug(curl_error($curlHandle));
 				continue;
 			}
+
+			$info = curl_getinfo($curlHandle);
+			$info = $this->removeUnwantedKeys($info);
 
 			$htmlDom->loadHTML($httpResponse);
 			$bodyTags = $htmlDom->getElementsByTagName('body');
@@ -156,19 +158,19 @@ class Webmon {
 						$data[$seed]['status'] = self::STATUS_NO_CHANGE;
 					}
 
-					$data[$seed]['lastChecked'] = microtime();
+					$this->showInfoDiff($data[$seed]['info'], $info);
 				} else {
 					// this is first processing of this seed
 					$this->debug(self::STATUS_NEW);
 					$data[$seed] = array(
 						'status' => self::STATUS_NEW,
 						'checksum' => $newChecksum,
-						'contents' => base64_encode($body),
-						'lastChecked' => microtime()
+						'contents' => base64_encode($body)
 					);
+					$this->showInfoDiff(array(), $info);
 				} // if-else on isset data[seed]
-				$data[$seed]['http_code'] = $info['http_code'];
-				$data[$seed]['content_type'] = $info['content_type'];
+				$data[$seed]['lastChecked'] = microtime();
+				$data[$seed]['info'] = $info;
 			} // foreach on bodyTags
 		} // foreach on seeds
 
@@ -179,6 +181,43 @@ class Webmon {
 		curl_close($curlHandle);
 		echo "\n*** Done ***\n";	
 	} // run
+
+	/**
+	 * removeUnwantedKeys
+	 * removes some keys from cUrl info array
+	 * @access private
+	 * @param Array info - array containing cUrl info
+	 * @return Array - array after removal of unwanted keys
+	 */
+	private function removeUnwantedKeys($info) {
+		$unwantedKeys = array('url', 'size_upload', 'speed_upload', 'upload_content_length');
+
+		foreach($unwantedKeys as $key) {
+			if (isset($info[$key])) {
+				unset($info[$key]);
+			}
+		}
+
+		return $info;
+	}
+
+	/**
+	 * showInfoDiff
+	 * shows difference between cUrl info found in current and last run
+	 * @access private
+	 * @param Array oldInfo array of cUrl info found in last run
+	 * @param Array newInfo array of cUrl info found in current run
+	 * @return none
+	 */
+	private function showInfoDiff($oldInfo, $newInfo) {
+		foreach($newInfo as $key => $value) {
+			$line = "$key is $value.";
+			if (isset($oldInfo[$key]) && $oldInfo[$key] !== null) {
+				$line .= " It was {$oldInfo[$key]}";
+			}
+			$this->debug($line);
+		}
+	}
 
 	/**
 	 * showDiff
