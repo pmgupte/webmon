@@ -38,6 +38,38 @@ class Webmon {
 	private $userDefinedUrl = null;
 
 	private $seeds = array();
+
+	private $colors = array(
+		'foreground' => array(
+			'black' => '0;30',
+			'darkGrey' => '1;30',
+			'blue' => '0;34',
+			'lightBlue' => '1;34',
+			'green' => '0;32',
+			'lightGreen' => '1;32',
+			'cyan' => '0;36',
+			'lightCyan' => '1;36',
+			'red' => '0;31',
+			'lightRed' => '1;31',
+			'purple' => '0;35',
+			'lightPurple' => '1;35',
+			'brown' => '0;33',
+			'yellow' => '1;33',
+			'lightGrey' => '0;37',
+			'white' => '1;37'
+		),
+		'background' => array(
+			'black' => '40',
+			'red' => '41',
+			'green' => '42',
+			'yellow' => '43',
+			'blue' => '44',
+			'magenta' => '45',
+			'cyan' => '46',
+			'lightGrey' => '47'
+		)
+	);
+
 	/**
 	 * Constructor.
 	 * @access public
@@ -66,7 +98,6 @@ class Webmon {
 		if (0 === count($this->seeds)) {
 			throw new Exception(self::NO_SEEDS_EXCEPTION);
 		}
-
 	}
 
 	/**
@@ -113,13 +144,13 @@ class Webmon {
 		libxml_use_internal_errors(true);
 
 		foreach ($this->seeds as $seed) {
-			$this->debug("Fetching: $seed");
+			$this->debug("Fetching: $seed", 'yellow');
 			curl_setopt($curlHandle, CURLOPT_URL, $seed);
 			curl_setopt($curlHandle, CURLOPT_REFERER, self::CURL_REFERER);
 			$httpResponse = curl_exec($curlHandle);
 
 			if (!$httpResponse) {
-				$this->debug(curl_error($curlHandle));
+				$this->debug(curl_error($curlHandle), 'white', 'red');
 				continue;
 			}
 
@@ -273,13 +304,25 @@ class Webmon {
 	 * @param message string message to print
 	 * @return none
 	 */
-	public function debug($message) {
+	public function debug($message, $fgColor = null, $bgColor = null) {
 		$timestamp = date('Y-m-d H:i:s');
+		$coloredString = "";
+
+		if (isset($this->colors['foreground'][$fgColor])) {
+			$coloredString .= "\033[" . $this->colors['foreground'][$fgColor] . "m";
+		}
+
+		if (isset($this->colors['background'][$bgColor])) {
+			$coloredString .= "\033[" . $this->colors['background'][$bgColor] . "m";
+		}
 
 		if (!is_string($message)) {
 			$message = var_export($message, true);
 		}
-		echo "[$timestamp]: $message\n";
+
+		$coloredString .= "[$timestamp]: $message\033[m\n";
+
+		echo $coloredString;
 	} // debug
 
 	/**
