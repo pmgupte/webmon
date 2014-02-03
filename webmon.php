@@ -144,7 +144,7 @@ class Webmon {
 		libxml_use_internal_errors(true);
 
 		foreach ($this->seeds as $seed) {
-			$this->debug("Fetching: $seed", 'yellow');
+			$this->debug("Fetching: $seed", 'black', 'yellow');
 			curl_setopt($curlHandle, CURLOPT_URL, $seed);
 			curl_setopt($curlHandle, CURLOPT_REFERER, self::CURL_REFERER);
 			$httpResponse = curl_exec($curlHandle);
@@ -167,7 +167,7 @@ class Webmon {
 				if (isset($data[$seed])) {
 					// we have processed this seed at least once before
 					if ($newChecksum !== $data[$seed]['checksum']) {
-						$this->debug(self::STATUS_CHANGED);
+						$this->debug(self::STATUS_CHANGED, 'red');
 						// web page changed. find the diff
 						if (!$this->userDefinedStatusOnly) {
 							$data[$seed]['contents'] = base64_decode($data[$seed]['contents']);
@@ -185,14 +185,14 @@ class Webmon {
 						$data[$seed]['contents'] = base64_encode($body);
 					} else {
 						// no change. just update status
-						$this->debug(self::STATUS_NO_CHANGE);
+						$this->debug(self::STATUS_NO_CHANGE, 'green');
 						$data[$seed]['status'] = self::STATUS_NO_CHANGE;
 					}
 
 					$this->showInfoDiff($data[$seed]['info'], $info);
 				} else {
 					// this is first processing of this seed
-					$this->debug(self::STATUS_NEW);
+					$this->debug(self::STATUS_NEW, 'green');
 					$data[$seed] = array(
 						'status' => self::STATUS_NEW,
 						'checksum' => $newChecksum,
@@ -246,7 +246,7 @@ class Webmon {
 			if (isset($oldInfo[$key]) && $oldInfo[$key] !== null) {
 				$line .= " It was {$oldInfo[$key]}";
 			}
-			$this->debug($line);
+			$this->debug($line, 'yellow');
 		}
 	}
 
