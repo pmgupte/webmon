@@ -177,6 +177,9 @@ class Webmon {
 							file_put_contents($filename . self::FILE_B_SUFFIX, $body);
 
 							$this->showDiff($filename . self::FILE_A_SUFFIX, $filename . self::FILE_B_SUFFIX);
+
+							unlink($filename . self::FILE_A_SUFFIX);
+							unlink($filename . self::FILE_B_SUFFIX);
 						}
 
 						// update the status in data file
