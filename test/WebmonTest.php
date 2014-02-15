@@ -53,6 +53,12 @@ class WebmonTest extends PHPUnit_Framework_TestCase {
 		$this->assertTrue($passed);
 	}
 
+	public function testRunWithOptionU() {
+		exec($this->webmonCmd . " -t30 -uhttp://example.com", $output, $returnValue);
+		$passed = $this->matchesInArray("Fetching: http://example.com", $output);
+		$this->assertTrue($passed);
+	}
+
 	public function testNonExistingIP() {
 		exec($this->webmonCmd . " -t10 -uhttp://999.0.0.0", $output, $returnValue);
 		$this->assertTrue($this->matchesInArray("Couldn't resolve host '999.0.0.0'", $output));
