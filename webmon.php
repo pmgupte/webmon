@@ -173,7 +173,7 @@ class Webmon {
 						$this->debug(self::STATUS_CHANGED, 'red');
 						// web page changed. find the diff
 						if (!$this->userDefinedStatusOnly) {
-							$data[$seed]['contents'] = base64_decode($data[$seed]['contents']);
+							$data[$seed]['contents'] = gzdecode(base64_decode($data[$seed]['contents']));
 
 							$filename = '/tmp/' . str_replace(array(':', '/'), '_', $seed);
 							file_put_contents($filename . self::FILE_A_SUFFIX, $data[$seed]['contents']);
@@ -188,7 +188,7 @@ class Webmon {
 						// update the status in data file
 						$data[$seed]['status'] = self::STATUS_CHANGED;
 						$data[$seed]['checksum'] = $newChecksum;
-						$data[$seed]['contents'] = base64_encode($body);
+						$data[$seed]['contents'] = base64_encode(gzencode($body, 9));
 					} else {
 						// no change. just update status
 						$this->debug(self::STATUS_NO_CHANGE, 'green');
@@ -202,7 +202,7 @@ class Webmon {
 					$data[$seed] = array(
 						'status' => self::STATUS_NEW,
 						'checksum' => $newChecksum,
-						'contents' => base64_encode($body)
+						'contents' => base64_encode(gzencode($body, 9))
 					);
 					$this->showInfoDiff(array(), $info);
 				} // if-else on isset data[seed]
