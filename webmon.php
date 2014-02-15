@@ -85,6 +85,9 @@ class Webmon {
 			$this->seeds = file($this->userDefinedInputFile, FILE_SKIP_EMPTY_LINES && FILE_IGNORE_NEW_LINES);
 			$this->seeds = $this->cleanSeeds($this->seeds);
 		}
+
+		$this->showDetailedInfo = isset($userDefinedOptions['detailed']) && $userDefinedOptions['detailed'] === true;
+
 		$this->userDefinedStatusOnly = $userDefinedOptions['statusOnly'];
 		$this->userDefinedTimeout = $userDefinedOptions['timeout'];
 		if (isset($userDefinedOptions['url'])) {
@@ -244,12 +247,14 @@ class Webmon {
 	 * @return none
 	 */
 	private function showInfoDiff($oldInfo, $newInfo) {
-		foreach($newInfo as $key => $value) {
-			$line = "$key is $value.";
-			if (isset($oldInfo[$key]) && $oldInfo[$key] !== null) {
-				$line .= " It was {$oldInfo[$key]}";
+		if ($this->showDetailedInfo) {
+			foreach($newInfo as $key => $value) {
+				$line = "$key is $value.";
+				if (isset($oldInfo[$key]) && $oldInfo[$key] !== null) {
+					$line .= " It was {$oldInfo[$key]}";
+				}
+				$this->debug($line, 'yellow');
 			}
-			$this->debug($line, 'yellow');
 		}
 	}
 
@@ -355,6 +360,7 @@ class Webmon {
 		echo "-u, --url\tURL to check.\n";
 		echo "-s, --statusonly\tReport only status, do not show diff\n";
 		echo "-t, --timeout\tTimeout period in seconds\n";
+		echo "-d, --detailed\tDetailed information\n";
 		echo "-h, --help\tShows this help text\n";
 	}
 } // End of Webmon class
@@ -368,9 +374,10 @@ $longopts = array(
 	"url:",
 	"statusonly",
 	"timeout::",
+	"detailed::",
 	"help"
 	);
-$options = getopt("i:u:st::h", $longopts);
+$options = getopt("i:u:sd::t::h", $longopts);
 
 if (!is_array($options)) {
 	echo "There was some error reading options.\n";
@@ -408,6 +415,10 @@ foreach ($options as $option => $value) {
 		case 's':
 		case 'statusonly':
 			$userDefinedOptions['statusOnly'] = true;
+			break;
+		case 'd':
+		case 'detailed':
+			$userDefinedOptions['detailed'] = true;
 			break;
 		case 't':
 		case 'timeout':
