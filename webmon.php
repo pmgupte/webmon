@@ -32,12 +32,15 @@ class Webmon {
 	const NO_SEEDS_EXCEPTION = 'No seeds found in seed file.';
 	const NO_CURL_EXCEPTION = 'Need PHP cURL installed and enabled.';
 
+	const VERSION = '1.1.2';
+
 	private $userDefinedInputFile = null;
 	private $userDefinedStatusOnly = null;
 	private $userDefinedTimeout = 30;
 	private $userDefinedUrl = null;
 
 	private $seeds = array();
+	private $data = array();
 
 	private $colors = array(
 		'foreground' => array(
@@ -79,6 +82,8 @@ class Webmon {
 	 */
 	public function __construct(Array $userDefinedOptions) {
 		$this->preCheck();
+		$this->loadData();
+		// $this->checkForUpdate();
 
 		if (isset($userDefinedOptions['inputFile'])) {
 			$this->userDefinedInputFile = $userDefinedOptions['inputFile'];
@@ -100,6 +105,39 @@ class Webmon {
 
 		if (0 === count($this->seeds)) {
 			throw new Exception(self::NO_SEEDS_EXCEPTION);
+		}
+	}
+
+	private function loadData() {
+		touch(self::DATA_JSON_FILE);
+		$this->data = json_decode(file_get_contents(self::DATA_JSON_FILE), true);
+	}
+
+	private function checkForUpdate() {
+		$updateHandle = curl_init('https://github.com/pmgupte/webmon/releases/latest');
+		curl_setopt($updateHandle, CURLOPT_FOLLOWLOCATION, true);
+		curl_setopt($updateHandle, CURLOPT_RETURNTRANSFER, true);
+		$updateCheckResponse = curl_exec($updateHandle);
+		$updateInfo = curl_getinfo($updateHandle);
+		curl_close($updateHandle);
+		$updateInfo = pathinfo($updateInfo['url']);
+
+		if ($updateInfo['basename'] !== self::VERSION) {
+			$nextReleaseURL = 'http://github.com/pmgupte/webmon/archive/' . $updateInfo['basename'] . '.tar.gz';
+			$homeDir = getcwd();
+			chdir('/tmp');
+			exec('wget -q ' . $nextReleaseURL, $output, $returnValue);
+			exec('tar -xvzf ' . $updateInfo['basename'] . '.tar.gz');
+			exec("cp /tmp/webmon-{$updateInfo['basename']}/webmon.php $homeDir/webmon.php.new");
+			exec('rm ' . $updateInfo['basename'] . '.tar.gz');
+			exec('rm -rf webmon-' . $updateInfo['basename']);
+			chdir($homeDir);
+
+			if (!isset($this->data['meta']) {
+				$this->data['meta'] = array();
+			} 
+			$this->data['meta']['version'] = $updateInfo['basename'];
+			$this->data['meta']['upgradeDate'] = date('Y-m-d H:i:s');
 		}
 	}
 
@@ -132,10 +170,6 @@ class Webmon {
 		if ($this->userDefinedInputFile !== null) {
 			touch($this->userDefinedInputFile);
 		}
-		touch(self::DATA_JSON_FILE);
-
-		// Load data from last run
-		$data = json_decode(file_get_contents(self::DATA_JSON_FILE), true);
 
 		$curlHandle = curl_init();
 		curl_setopt($curlHandle, CURLOPT_RETURNTRANSFER, true);
@@ -167,16 +201,16 @@ class Webmon {
 				$body = $bodyTag->nodeValue;
 				$newChecksum = md5($body);
 
-				if (isset($data[$seed])) {
+				if (isset($this->data[$seed])) {
 					// we have processed this seed at least once before
-					if ($newChecksum !== $data[$seed]['checksum']) {
+					if ($newChecksum !== $this->data[$seed]['checksum']) {
 						$this->debug(self::STATUS_CHANGED, 'red');
 						// web page changed. find the diff
 						if (!$this->userDefinedStatusOnly) {
-							$data[$seed]['contents'] = gzdecode(base64_decode($data[$seed]['contents']));
+							$this->data[$seed]['contents'] = gzdecode(base64_decode($this->data[$seed]['contents']));
 
 							$filename = '/tmp/' . str_replace(array(':', '/'), '_', $seed);
-							file_put_contents($filename . self::FILE_A_SUFFIX, $data[$seed]['contents']);
+							file_put_contents($filename . self::FILE_A_SUFFIX, $this->data[$seed]['contents']);
 							file_put_contents($filename . self::FILE_B_SUFFIX, $body);
 
 							$this->showDiff($filename . self::FILE_A_SUFFIX, $filename . self::FILE_B_SUFFIX);
@@ -186,33 +220,33 @@ class Webmon {
 						}
 
 						// update the status in data file
-						$data[$seed]['status'] = self::STATUS_CHANGED;
-						$data[$seed]['checksum'] = $newChecksum;
-						$data[$seed]['contents'] = base64_encode(gzencode($body, 9));
+						$this->data[$seed]['status'] = self::STATUS_CHANGED;
+						$this->data[$seed]['checksum'] = $newChecksum;
+						$this->data[$seed]['contents'] = base64_encode(gzencode($body, 9));
 					} else {
 						// no change. just update status
 						$this->debug(self::STATUS_NO_CHANGE, 'green');
-						$data[$seed]['status'] = self::STATUS_NO_CHANGE;
+						$this->data[$seed]['status'] = self::STATUS_NO_CHANGE;
 					}
 
-					$this->showInfoDiff($data[$seed]['info'], $info);
+					$this->showInfoDiff($this->data[$seed]['info'], $info);
 				} else {
 					// this is first processing of this seed
 					$this->debug(self::STATUS_NEW, 'green');
-					$data[$seed] = array(
+					$this->data[$seed] = array(
 						'status' => self::STATUS_NEW,
 						'checksum' => $newChecksum,
 						'contents' => base64_encode(gzencode($body, 9))
 					);
 					$this->showInfoDiff(array(), $info);
 				} // if-else on isset data[seed]
-				$data[$seed]['lastChecked'] = microtime();
-				$data[$seed]['info'] = $info;
+				$this->data[$seed]['lastChecked'] = microtime();
+				$this->data[$seed]['info'] = $info;
 			} // foreach on bodyTags
 		} // foreach on seeds
 
 		// save updated data
-		file_put_contents(self::DATA_JSON_FILE, json_encode($data));
+		file_put_contents(self::DATA_JSON_FILE, json_encode($this->data));
 
 		libxml_clear_errors();
 		curl_close($curlHandle);
