@@ -83,8 +83,10 @@ class Webmon {
 	public function __construct(Array $userDefinedOptions) {
 		echo "Webmon Version ", self::VERSION, "\n";
 		$this->preCheck();
-		$this->loadData();
 		$this->checkForUpdate();
+
+		touch(self::DATA_JSON_FILE);
+		$this->data = json_decode(file_get_contents(self::DATA_JSON_FILE), true);
 
 		if (isset($userDefinedOptions['inputFile'])) {
 			$this->userDefinedInputFile = $userDefinedOptions['inputFile'];
@@ -109,11 +111,13 @@ class Webmon {
 		}
 	}
 
-	private function loadData() {
-		touch(self::DATA_JSON_FILE);
-		$this->data = json_decode(file_get_contents(self::DATA_JSON_FILE), true);
-	}
-
+	/**
+	 * checkForUpdate
+	 * Checks for availability of newer version
+	 * @access private
+	 * @param none
+	 * @return none
+	 */
 	private function checkForUpdate() {
 		$updateHandle = curl_init('https://github.com/pmgupte/webmon/releases/latest');
 		curl_setopt($updateHandle, CURLOPT_FOLLOWLOCATION, true);
@@ -123,7 +127,11 @@ class Webmon {
 		curl_close($updateHandle);
 		$updateInfo = pathinfo($updateInfo['url']);
 
-		if ($updateInfo['basename'] !== self::VERSION && isUpperVersion($updateInfo['basename'])) {
+		list($currentMajor, $currentMinor, $currentPatch) = explode('.', self::VERSION);
+		list($newMajor, $newMinor, $newPatch) = explode('.', $updateInfo['basename']);
+		$isUpperVersion = ($newMajor > $currentMajor || $newMinor > $currentMinor || $newPatch > $curreentPatch);
+
+		if ($updateInfo['basename'] !== self::VERSION && $isUpperVersion) {
 			echo "New version available! Upgrading from ", self::VERSION, " to ", $updateInfo['basename'], "\n";
 			$nextReleaseURL = 'http://github.com/pmgupte/webmon/archive/' . $updateInfo['basename'] . '.tar.gz';
 			$homeDir = getcwd();
@@ -146,13 +154,6 @@ class Webmon {
 		} else {
 			echo "You are running latest version of Webmon.\n";
 		}
-	}
-
-	private function isUpperVersion($version) {
-		list($currentMajor, $currentMinor, $currentPatch) = explode('.', self::VERSION);
-		list($newMajor, $newMinor, $newPatch) = explode('.', $version);
-
-		return ($newMajor > $currentMajor || $newMinor > $currentMinor || $newPatch > $curreentPatch);
 	}
 
 	/**
