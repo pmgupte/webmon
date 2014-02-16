@@ -81,9 +81,10 @@ class Webmon {
 	 * @return none
 	 */
 	public function __construct(Array $userDefinedOptions) {
+		echo "Webmon Version ", self::VERSION, "\n";
 		$this->preCheck();
 		$this->loadData();
-		// $this->checkForUpdate();
+		$this->checkForUpdate();
 
 		if (isset($userDefinedOptions['inputFile'])) {
 			$this->userDefinedInputFile = $userDefinedOptions['inputFile'];
@@ -122,23 +123,36 @@ class Webmon {
 		curl_close($updateHandle);
 		$updateInfo = pathinfo($updateInfo['url']);
 
-		if ($updateInfo['basename'] !== self::VERSION) {
+		if ($updateInfo['basename'] !== self::VERSION && isUpperVersion($updateInfo['basename'])) {
+			echo "New version available! Upgrading from ", self::VERSION, " to ", $updateInfo['basename'], "\n";
 			$nextReleaseURL = 'http://github.com/pmgupte/webmon/archive/' . $updateInfo['basename'] . '.tar.gz';
 			$homeDir = getcwd();
 			chdir('/tmp');
 			exec('wget -q ' . $nextReleaseURL, $output, $returnValue);
 			exec('tar -xvzf ' . $updateInfo['basename'] . '.tar.gz');
-			exec("cp /tmp/webmon-{$updateInfo['basename']}/webmon.php $homeDir/webmon.php.new");
+			exec("cp /tmp/webmon-{$updateInfo['basename']}/webmon.php $homeDir/webmon.php");
 			exec('rm ' . $updateInfo['basename'] . '.tar.gz');
 			exec('rm -rf webmon-' . $updateInfo['basename']);
 			chdir($homeDir);
 
-			if (!isset($this->data['meta']) {
+			if (!isset($this->data['meta'])) {
 				$this->data['meta'] = array();
 			} 
 			$this->data['meta']['version'] = $updateInfo['basename'];
 			$this->data['meta']['upgradeDate'] = date('Y-m-d H:i:s');
+
+			echo "Webmon Upgraded from version ", self::VERSION, " to ", $updateInfo['basename'], "!\n";
+			echo "Exiting now. Please re-run webmon to use new version.";
+		} else {
+			echo "You are running latest version of Webmon.\n";
 		}
+	}
+
+	private function isUpperVersion($version) {
+		list($currentMajor, $currentMinor, $currentPatch) = explode('.', self::VERSION);
+		list($newMajor, $newMinor, $newPatch) = explode('.', $version);
+
+		return ($newMajor > $currentMajor || $newMinor > $currentMinor || $newPatch > $curreentPatch);
 	}
 
 	/**
