@@ -129,7 +129,7 @@ class Webmon {
 
 		list($currentMajor, $currentMinor, $currentPatch) = explode('.', self::VERSION);
 		list($newMajor, $newMinor, $newPatch) = explode('.', $updateInfo['basename']);
-		$isUpperVersion = ($newMajor > $currentMajor || $newMinor > $currentMinor || $newPatch > $curreentPatch);
+		$isUpperVersion = ($newMajor > $currentMajor || $newMinor > $currentMinor || $newPatch > $currentPatch);
 
 		if ($updateInfo['basename'] !== self::VERSION && $isUpperVersion) {
 			echo "New version available! Upgrading from ", self::VERSION, " to ", $updateInfo['basename'], "\n";
