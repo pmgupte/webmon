@@ -32,7 +32,7 @@ class Webmon {
 	const NO_SEEDS_EXCEPTION = 'No seeds found in seed file.';
 	const NO_CURL_EXCEPTION = 'Need PHP cURL installed and enabled.';
 
-	const VERSION = '1.1.2';
+	const VERSION = '1.3.0';
 
 	private $userDefinedInputFile = null;
 	private $userDefinedStatusOnly = null;
