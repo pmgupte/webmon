@@ -21,7 +21,7 @@
 */
 
 class Webmon {
-	const DATA_JSON_FILE = './data.json';
+	const DATA_JSON_FILE = '/app/store/data.json';
 	const FILE_A_SUFFIX = '_a.txt';
 	const FILE_B_SUFFIX = '_b.txt';
 	const STATUS_NEW = 'New';
